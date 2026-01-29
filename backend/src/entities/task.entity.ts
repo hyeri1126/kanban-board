@@ -1,7 +1,7 @@
 import { Entity, PrimaryKey, Property, ManyToOne, Enum } from "@mikro-orm/core";
 import { v4 } from "uuid";
 import { User } from "./user.entity";
-import { TaskStatus } from "src/enums/task-status.enum";
+import { TaskStatus } from "../enums/task-status.enum";
 
 @Entity()
 export class Task {
