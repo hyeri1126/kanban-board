@@ -6,12 +6,12 @@ import { Task } from "./entities/task.entity";
 const config: Options = {
     driver: PostgreSqlDriver, 
     entities: [User, Task],
-    dbName: 'kanban',
-    host: 'localhost',
-    port: 5432,
-    user: 'postgres',
-    password: 'postgres',
-    debug: true,
+    dbName: process.env.DB_NAME || 'kanban',
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432'),
+    user: process.env.DB_USER ||'postgres',
+    password: process.env.DB_PASSWORD || 'postgres',
+    debug: process.env.NODE_ENV !== 'production',
     migrations: {
         path: './src/migrations',
     }
