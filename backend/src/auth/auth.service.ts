@@ -5,7 +5,6 @@ import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { User } from 'src/entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { use } from 'passport';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
@@ -28,11 +27,10 @@ export class AuthService {
         // 비밀번호 해싱
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        // 사용자 생성 및 저장
         const user = new User(email, hashedPassword, name);
-
-        //  DB에 저장
-        this.em.persist(user);
-        await this.em.flush();
+        this.em.persist(user); // 메모리에 등록
+        await this.em.flush(); // DB에 저장 
 
         // JWT 토큰 생성
         const accessToken = this.generateToken(user);
@@ -76,5 +74,9 @@ export class AuthService {
             enmail: user.email
         };
         return this.jwtService.sign(payload);
+    }
+
+    async findUserById(userId: string): Promise<User | null>{
+        return this.em.findOne(User, {id: userId});
     }
 }
