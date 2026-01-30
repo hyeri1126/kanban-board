@@ -39,8 +39,9 @@ export class TasksController {
     async delete(
         @Param('id') id:string,
         @Request() req,
-    ): Promise<void> {
-        return this.tasksService.delete(id, req.user.id)
+    ): Promise<{message: string}> {
+        await this.tasksService.delete(id, req.user.id)
+        return {message: '일감이 삭제되었습니다.'}
     }
 
 }
