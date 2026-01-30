@@ -13,12 +13,14 @@ export class TasksService {
     constructor(private readonly em: EntityManager){}
 
     // 조회
-    async findAll(userId: string): Promise<Task[]> {
-        return this.em.find(
+    async findAll(userId: string): Promise<TaskResponseDto[]> {
+        const tasks = await this.em.find(
             Task,
-            {creator: {id:userId}},
+            {creator: {id: userId}},
             {populate: ['creator']}
         )
+
+        return tasks.map(task => this.toTaskResponseDto(task));
     }
 
     // 생성
@@ -26,33 +28,18 @@ export class TasksService {
         createTaskDto: CreateTaskDto, 
         user: User
     ): Promise<TaskResponseDto> {
-        const {title, status, position} = createTaskDto;
-
         // task 생성 및 저장
         const task = new Task(
-            title, 
+            createTaskDto.title, 
             user, 
-            status ?? TaskStatus.TODO, 
-            position ?? 0
+            createTaskDto.status ?? TaskStatus.TODO, 
+            createTaskDto.position ?? 0
         );
 
         this.em.persist(task);
         await this.em.flush();
 
-        return {
-            id: task.id,
-            title: task.title,
-            status: task.status,
-            position: task.position,
-            version: task.version,
-            createdAt: task.createdAt,
-            updatedAt: task.updatedAt,
-            creator: {
-                id: user.id,
-                name: user.name,
-                email: user.email
-            },
-        };
+        return this.toTaskResponseDto(task);
     } 
 
     // 수정
@@ -60,8 +47,12 @@ export class TasksService {
         id: string,
         updateTaskDto: UpdateTaskDto,
         user: User
-    ): Promise<Task> {
-        const task = await this.em.findOne(Task, {id}, {populate: ['creator']});
+    ): Promise<TaskResponseDto> {
+        const task = await this.em.findOne(
+            Task, 
+            {id}, 
+            {populate: ['creator']}
+        );
 
         if(!task){
             throw new NotFoundException('일감을 찾을 수 없습니다.'); // 404 에러 
@@ -79,7 +70,7 @@ export class TasksService {
 
         await this.em.flush();
 
-        return task;
+        return this.toTaskResponseDto(task);
 
     }
 
@@ -98,6 +89,25 @@ export class TasksService {
 
         this.em.remove(task);
         await this.em.flush();
+    }
+
+    private toTaskResponseDto(task: Task): TaskResponseDto {
+        const user = task.creator;
+
+        return {
+            id: task.id,
+            title: task.title,
+            status: task.status,
+            position: task.position,
+            version: task.version,
+            createdAt: task.createdAt,
+            updatedAt: task.updatedAt,
+            creator: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+            },
+        }
     }
 }
 
