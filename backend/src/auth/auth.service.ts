@@ -6,6 +6,7 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { User } from 'src/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
+import { RegisterResponseDto } from './dto/register-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +16,7 @@ export class AuthService {
     ){}
 
     // 회원가입
-    async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+    async register(registerDto: RegisterDto): Promise<RegisterResponseDto> {
         const { email, password, name } = registerDto;
 
         // 이메일 중복 확인
@@ -32,27 +33,21 @@ export class AuthService {
         this.em.persist(user); // 메모리에 등록
         await this.em.flush(); // DB에 저장 
 
-        // JWT 토큰 생성
-        const accessToken = this.generateToken(user);
-
-        return {
-            accessToken,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name
-            }
-        }
+        return { message: '회원가입이 완료되었습니다.' }
     }
 
     // 로그인
     async login(loginDto: LoginDto): Promise<AuthResponseDto> {
         const {email, password} = loginDto;
 
-        // 사용자 찾기 
         const user = await this.em.findOne(User, {email});
         if(!user){
-            throw new UnauthorizedException('이메일 또는 비밀번호가 잘못되었습니다.'); // 40 에러 
+            throw new UnauthorizedException('이메일 또는 비밀번호가 잘못되었습니다.');  
+        }
+
+        const isValid = await bcrypt.compare(password, user.password);
+        if(!isValid){
+            throw new UnauthorizedException('이메일 또는 비밀번호가 잘못되었습니다.');
         }
 
         const accessToken = this.generateToken(user);
@@ -71,7 +66,7 @@ export class AuthService {
     private generateToken(user: User): string {
         const payload = {
             sub: user.id,  
-            enmail: user.email
+            email: user.email
         };
         return this.jwtService.sign(payload);
     }
