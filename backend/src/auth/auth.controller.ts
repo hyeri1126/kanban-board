@@ -10,6 +10,7 @@ export class AuthController {
     constructor(private readonly authService: AuthService){}
 
     @Post('register')
+    @HttpCode(HttpStatus.OK)
     async register(@Body() registerDto: RegisterDto): Promise<RegisterResponseDto> {
         return this.authService.register(registerDto);
     }
