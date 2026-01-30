@@ -5,6 +5,8 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { User } from 'src/entities/user.entity';
 import { TaskStatus } from 'src/enums/task-status.enum';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { TasksController } from './tasks.controller';
+import { TaskResponseDto } from './dto/task-response.dto';
 
 @Injectable()
 export class TasksService {
@@ -20,15 +22,37 @@ export class TasksService {
     }
 
     // 생성
-    async create(createTaskDto: CreateTaskDto, user: User): Promise<Task> {
+    async create(
+        createTaskDto: CreateTaskDto, 
+        user: User
+    ): Promise<TaskResponseDto> {
         const {title, status, position} = createTaskDto;
 
         // task 생성 및 저장
-        const task = new Task(title, user, status || TaskStatus.TODO, position || 0);
+        const task = new Task(
+            title, 
+            user, 
+            status ?? TaskStatus.TODO, 
+            position ?? 0
+        );
+
         this.em.persist(task);
         await this.em.flush();
 
-        return task;
+        return {
+            id: task.id,
+            title: task.title,
+            status: task.status,
+            position: task.position,
+            version: task.version,
+            createdAt: task.createdAt,
+            updatedAt: task.updatedAt,
+            creator: {
+                id: user.id,
+                name: user.name,
+                email: user.email
+            },
+        };
     } 
 
     // 수정

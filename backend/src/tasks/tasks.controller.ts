@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Get, Post, Body, Patch, Param, Request, Delete } from '@nestjs/common';
+import { Controller, UseGuards, Get, Post, Body, Patch, Param, Request, Delete, HttpCode, HttpStatus } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskResponseDto } from './dto/task-response.dto';
@@ -15,8 +15,11 @@ export class TasksController {
     async findAll(@Request() req): Promise<TaskResponseDto[]>{
         return this.tasksService.findAll(req.user.id);
     }
+
+
     // POST /tasks - 생성
     @Post()
+    @HttpCode(HttpStatus.OK)
     async create(
         @Body() createTaskDto: CreateTaskDto,
         @Request() req,
